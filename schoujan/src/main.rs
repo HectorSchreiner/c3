@@ -18,7 +18,6 @@ fn main() -> std::io::Result<()> {
             Ok(stream) => {
                 println!("New client connected to C2");
                 c2.clients.push(Client::new(stream));
-                c2.send_commands();
             }
             Err(e) => {
                 println!("Connection failed: {}", e);
