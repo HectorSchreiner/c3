@@ -2,16 +2,6 @@ use std::io::{Write};
 use std::net::{TcpStream};
 use std::process::Command;
 
-pub struct Client {
-    stream: TcpStream, 
-}
-
-impl Client {
-    pub fn new(stream: TcpStream) -> Self {
-        Self { stream }
-    }
-}
-
 pub struct C2 {
     pub clients: Vec<Client>,
     command: Vec<String>
@@ -31,6 +21,16 @@ impl C2 {
                 } 
             }
         }
+    }
+}
+
+pub struct Client {
+    stream: TcpStream, 
+}
+
+impl Client {
+    pub fn new(stream: TcpStream) -> Self {
+        Self { stream }
     }
 }
 
