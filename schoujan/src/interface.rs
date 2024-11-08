@@ -1,9 +1,5 @@
 use crossterm::{
-    event::{self, Event, KeyCode},
-    execute,
-    style::{Color, Print, SetForegroundColor},
-    terminal::{Clear, ClearType},
-    ExecutableCommand,
+    cursor, event::{self, read, Event, KeyCode, KeyEvent, KeyEventKind}, execute, queue, style::{self, Color, Print, SetForegroundColor}, terminal::{self, Clear, ClearType}, ExecutableCommand, QueueableCommand
 };
 use std::{io::{stdout, Result, Stdout, Write}, process::Command};
 
@@ -18,54 +14,71 @@ impl Interface {
         Self { stdout: stdout() }
     }
 
-    pub fn display_menu(&mut self, menu: &Menu) -> Result<()> {
-        self.stdout.execute(Clear(ClearType::All))?;
+    pub fn display_menu(&mut self) -> Result<()> {
         self.stdout.execute(SetForegroundColor(Color::Cyan))?;
 
-        self.stdout
-            .execute(Print(format!("=== {} ===\n", menu.header)))?;
+        terminal::enable_raw_mode()?;
 
-        for (iter, item) in menu.items.iter().enumerate() {
-            self.stdout
-                .execute(Print(format!("{}: {}\n", iter, &item.name)))?;
-        }
+        const MENU: &str = r#"
+Command & Control 
 
-        self.stdout.execute(SetForegroundColor(Color::Reset))?;
-        self.stdout.execute(Print(
-            "Select an option by number, or press 'Esc' to exit.\n",
-        ))?;
-        Ok(())
-    }
+Options:
 
-    pub fn handle_input(&mut self, menu: &Menu, c2: &mut C2) -> Result<()> {
+    1. send command
+    2. ikke lavet endnu 
+
+Select test to run ('1', '2', ...) or hit 'q' to quit.
+
+        "#;
+
         loop {
-            if event::poll(std::time::Duration::from_millis(500))? {
-                if let Event::Key(key_event) = event::read()? {
-                    match key_event.code {
-                        KeyCode::Char(c) if c.is_ascii_digit() => {
-                            let index = c.to_digit(10).unwrap() as usize;
-                            if index > 0 && index <= menu.items.len() {
-                                self.send_to_c2(&menu.items[index - 1].command, c2);
-                            } else {
-                                self.display_message("Invalid option")?;
-                            }
-                        }
-                        KeyCode::Esc => {
-                            self.display_message("Exiting...")?;
-                            break;
-                        }
-                        _ => {
-                            self.display_message("Invalid input, try again.")?;
-                        }
-                    }
+            queue!(
+                self.stdout,
+                style::ResetColor,
+                terminal::Clear(ClearType::All),
+                cursor::Hide,
+                cursor::MoveTo(1, 1)
+            )?;
+    
+            for line in MENU.split('\n') {
+                queue!(self.stdout, style::Print(line), cursor::MoveToNextLine(1))?;
+            }            
+    
+            self.stdout.flush()?;
+        
+            match Self::read_char()? {
+                '1' => {
+                    self.stdout.execute(Print(format!("Sending command to Clients...")))?;
+                    break;
+                },
+                '2' => {
+                    self.stdout.execute(Print(format!("Option 2 Chosen")))?;
+                    break;
+                },
+                'q' => {
+                    execute!(self.stdout, cursor::SetCursorStyle::DefaultUserShape).unwrap();
+                    break;
                 }
-            }
-        }
-        Ok(())
+                _ => {
+                    self.stdout.execute(Print(format!("Invalid input")))?;
+
+                    break;
+                }
+            };
+        }          
+
+        execute!(
+            self.stdout,
+            style::ResetColor,
+            cursor::Show,
+            terminal::LeaveAlternateScreen
+        )?;
+    
+        terminal::disable_raw_mode()
     }
 
     pub fn display_message(&mut self, message: &str) -> Result<()> {
-        self.stdout.execute(Clear(ClearType::All))?;
+        //self.stdout.execute(Clear(ClearType::All))?;
         self.stdout.execute(Print(format!("{}\n", message)))?;
         self.stdout.flush()?;  
         Ok(())
@@ -75,41 +88,24 @@ impl Interface {
         c2.add_command(&command);
     }
 
-    pub fn run(&mut self, menu: &Menu, c2: &mut C2) -> Result<()> {
-        self.display_menu(menu)?;
-        self.handle_input(menu, c2)?;
+    pub fn run(&mut self, c2: &mut C2) -> Result<()> {
+        //self.display_menu(menu)?;
         Ok(())
     }
-}
 
-#[derive(Debug, Clone)]
-pub struct Menu {
-    pub header: String,
-    pub items: Vec<Item>,
-}
-
-#[derive(Debug, Clone)]
-pub struct Item {
-    pub name: String,
-    pub command: C2Command,
-}
-
-impl Item {
-    pub fn new(name: String, command: C2Command) -> Self {
-        Self { name, command }
-    }
-}
-
-impl Menu {
-    pub fn new(header: String) -> Self {
-        Self {
-            header,
-            items: Vec::new(),
+    pub fn read_char() -> std::io::Result<char> {
+        loop {
+            if let Ok(Event::Key(KeyEvent {
+                code: KeyCode::Char(c),
+                kind: KeyEventKind::Press,
+                modifiers: _,
+                state: _,
+            })) = event::read()
+            {
+                return Ok(c);
+            }
         }
     }
-
-    pub fn add_item(&mut self, item: &Item) {
-        self.items.push(item.clone());
-    }
 }
+
 
