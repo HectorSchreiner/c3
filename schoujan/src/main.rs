@@ -19,6 +19,7 @@ fn main() -> std::io::Result<()> {
 
     let c2 = Arc::new(Mutex::new(C2::new(vec![test_command])));
     interface.display_menu()?;
+    println!("escaped");
 
     let c2_clone = Arc::clone(&c2);
     thread::spawn(move || {

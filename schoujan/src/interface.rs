@@ -17,21 +17,21 @@ impl Interface {
     pub fn display_menu(&mut self) -> Result<()> {
         self.stdout.execute(SetForegroundColor(Color::Cyan))?;
 
-        terminal::enable_raw_mode()?;
+        //terminal::enable_raw_mode()?;
 
         const MENU: &str = r#"
-Command & Control 
+<==== Command & Control Server ====><
 
 Options:
+    1. List Clients
+    2. Encrypt Drives
+    3. Send shell command
 
-    1. send command
-    2. ikke lavet endnu 
-
-Select test to run ('1', '2', ...) or hit 'q' to quit.
-
+Select option to run ('1', '2', ...) or hit <CTRL-C> to exit
+__________________________________________________________
         "#;
 
-        loop {
+        Ok(loop {
             queue!(
                 self.stdout,
                 style::ResetColor,
@@ -48,33 +48,23 @@ Select test to run ('1', '2', ...) or hit 'q' to quit.
         
             match Self::read_char()? {
                 '1' => {
-                    self.stdout.execute(Print(format!("Sending command to Clients...")))?;
-                    break;
+                    self.stdout.execute(Print(format!("Listing Clients\n- Windows 1\n- Windows 2\n- Ubuntu\n")))?;
+                    Self::read_enter(&mut self.stdout)?;
+                    self.display_menu()?;
                 },
                 '2' => {
-                    self.stdout.execute(Print(format!("Option 2 Chosen")))?;
-                    break;
-                },
-                'q' => {
-                    execute!(self.stdout, cursor::SetCursorStyle::DefaultUserShape).unwrap();
-                    break;
+                    self.stdout.execute(Print(format!("Encrypting C Drive\n")))?;
+                    Self::read_enter(&mut self.stdout)?;
+                    self.display_menu()?;
                 }
                 _ => {
-                    self.stdout.execute(Print(format!("Invalid input")))?;
-
-                    break;
+                    self.stdout.execute(Print(format!("Invalid input\n")))?;
+                    Self::read_enter(&mut self.stdout)?;
+                    self.display_menu()?;
                 }
             };
-        }          
-
-        execute!(
-            self.stdout,
-            style::ResetColor,
-            cursor::Show,
-            terminal::LeaveAlternateScreen
-        )?;
-    
-        terminal::disable_raw_mode()
+        })         
+        //terminal::disable_raw_mode()
     }
 
     pub fn display_message(&mut self, message: &str) -> Result<()> {
@@ -103,6 +93,22 @@ Select test to run ('1', '2', ...) or hit 'q' to quit.
             })) = event::read()
             {
                 return Ok(c);
+            }
+        }
+    }
+
+    pub fn read_enter(stdout: &mut Stdout) -> std::io::Result<()> {
+        stdout.execute(Print(format!("_______________________\n")))?;
+        stdout.execute(Print(format!("press enter to continue\n")))?;
+        loop {
+            if let Ok(Event::Key(KeyEvent {
+                code: KeyCode::Enter,
+                kind: KeyEventKind::Press,
+                modifiers: _,
+                state: _,
+            })) = event::read()
+            {
+                return Ok(());
             }
         }
     }
