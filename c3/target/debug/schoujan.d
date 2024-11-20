@@ -1,1 +1,1 @@
-/home/hector/Programming/Rust/c3/c3/target/debug/schoujan: /home/hector/Programming/Rust/c3/c3/src/commands.rs /home/hector/Programming/Rust/c3/c3/src/interface.rs /home/hector/Programming/Rust/c3/c3/src/main.rs /home/hector/Programming/Rust/c3/c3/src/server.rs
+/home/hector/Programming/Rust/c3/c3/target/debug/schoujan: /home/hector/Programming/Rust/c3/c3/src/main.rs
