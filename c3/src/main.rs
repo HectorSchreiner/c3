@@ -1,8 +1,6 @@
-use tokio::*;
-use crossterm::*;
-use serde::*;
-use log::*;
+mod server;
 
 pub fn main() {
     println!("hello, world");
+    let ver: server::Client;
 }
