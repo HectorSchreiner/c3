@@ -1,17 +1,19 @@
 use std::time::Instant;
 use uuid::Uuid;
 
+use super::Client;
+
 #[derive(Debug)]
 pub struct CommandEntry {
-    pub client_id: Uuid,
+    pub clients: Vec<Client>,
     pub command: C2Command,
     pub timestamp: Instant,
     pub result: CommandResult
 }
 
 impl CommandEntry {
-    pub fn new(client_id: Uuid, command: C2Command, timestamp: Instant, result: CommandResult) -> Self {
-        Self { client_id, command, timestamp, result }
+    pub fn new(clients: Vec<Client>, command: C2Command, timestamp: Instant, result: CommandResult) -> Self {
+        Self { clients, command, timestamp, result }
     }
 
     pub fn execute(&mut self) {
