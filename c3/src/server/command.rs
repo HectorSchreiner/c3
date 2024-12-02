@@ -1,5 +1,6 @@
 use std::time::Instant;
 use uuid::Uuid;
+use time::Time;
 
 use super::Client;
 
@@ -7,16 +8,16 @@ use super::Client;
 pub struct CommandEntry {
     pub clients: Vec<Client>,
     pub command: C2Command,
-    pub timestamp: Instant,
+    pub timestamp: Time,
     pub result: CommandResult
 }
 
 impl CommandEntry {
-    pub fn new(clients: Vec<Client>, command: C2Command, timestamp: Instant, result: CommandResult) -> Self {
+    pub fn new(clients: Vec<Client>, command: C2Command, timestamp: Time, result: CommandResult) -> Self {
         Self { clients, command, timestamp, result }
     }
 
-    pub fn execute(&mut self) {
+    pub fn execute(&self) {
         todo!()
     }
 }

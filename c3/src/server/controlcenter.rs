@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::{Arc, Mutex}};
 
 use uuid::Uuid;
 
-use super::{clients, Client, CommandEntry};
+use super::{clients, Client, CommandEntry, C2Command};
 
 pub struct C2 {
     pub clients: Arc<Mutex<Vec<Client>>>,
@@ -30,5 +30,9 @@ impl C2 {
         self.command_queue.push(command_entry);
     }
 
-    
+    pub fn iter_queue(&mut self) {
+        for command_entry in self.command_queue.iter() {
+            command_entry.execute();
+        }
+    }
 }
