@@ -1,6 +1,7 @@
 use std::time::Instant;
 use uuid::Uuid;
 use time::Time;
+use crate::log::*;
 
 use super::Client;
 
@@ -14,11 +15,8 @@ pub struct CommandEntry {
 
 impl CommandEntry {
     pub fn new(clients: Vec<Client>, command: C2Command, timestamp: Time, result: CommandResult) -> Self {
-        Self { clients, command, timestamp, result }
-    }
 
-    pub fn execute(&self) {
-        todo!()
+        Self { clients, command, timestamp, result }
     }
 }
 

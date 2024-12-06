@@ -19,3 +19,4 @@ pub fn main() {
         LogHandler::print_log(log);
     }
 }
+
