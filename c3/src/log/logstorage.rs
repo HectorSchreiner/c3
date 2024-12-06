@@ -1,42 +1,46 @@
 use std::fmt;
-
-use time::Time;
+use time::{OffsetDateTime, PrimitiveDateTime};
 
 pub struct LogStorage {
-    pub logs: Vec<Log>,
+    pub logs: Vec<C2Log>,
 }
 
-pub struct Log {
-    pub timestamp: Time,
-    pub category: LogCategory
+impl LogStorage {
+    pub fn new(logs: Vec<C2Log>) -> Self {
+        Self { logs }
+    }
+
+    pub fn add_log(&mut self, log: C2Log) {
+        self.logs.push(log);
+    }
 }
 
-impl Log {
-    pub fn string_output(&mut self) -> String {
-        format!("Date: {}, Category: {}", self.timestamp.to_string(), self.category)
-    }
+pub struct C2Log {
+    pub timestamp: PrimitiveDateTime,
+    pub level: LogLevel,
+    pub message: String
+}
 
-    pub fn get_date() -> String {
-        todo!()
-    }
+impl C2Log {
+    pub fn new(level: LogLevel, message: String) -> Self {
+        let now = OffsetDateTime::now_utc(); // Get current UTC time
+        let date = now.date();
+        let time = now.time();
+        let timestamp = PrimitiveDateTime::new(date, time);
 
-    pub fn get_title() -> String {
-        todo!()
+        Self {
+            timestamp,
+            level,
+            message,
+        }
     }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub enum LogCategory {
-    Command,
-    Client,
-}
-
-impl fmt::Display for LogCategory {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Command => write!(f, "Command"),
-            Self::Client => write!(f, "Client"),
-        }
-    }
+pub enum LogLevel {
+    Info,
+    Warning,
+    Error,
+    Critical
 }
 

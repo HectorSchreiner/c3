@@ -1,1 +1,3 @@
-pub struct Interface;
+pub struct Interface {
+
+}
