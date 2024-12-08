@@ -26,7 +26,7 @@ impl C2 {
         }
     }
 
-    pub async fn start_listener(&self, logstorage: &mut LogStorage) -> tokio::io::Result<()> {
+    pub async fn start_listener(&mut self, logstorage: &mut LogStorage) -> tokio::io::Result<()> {
         let server_address = "127.0.0.1:1414";
         let listener: TcpListener = TcpListener::bind(server_address).await?;
         logstorage.add_log(C2Log::new(LogLevel::Info, format!("Created new TcpListener on address: {server_address}")));
@@ -38,15 +38,13 @@ impl C2 {
             match listener.accept().await {
                 Ok((socket, client_address)) => {
                     logstorage.add_log(C2Log::new(LogLevel::Info, format!("Accepted incoming connection from client address: {}", client_address)));
-                    self.save_client(Client::new( stream, hostname, client_address), logstorage)
+                    self.save_client(Client::new( socket, "hostname".to_owned(), client_address.to_string()), logstorage).await;
                 }
                 Err(e) => {
                     logstorage.add_log(C2Log::new(LogLevel::Error, format!("Failed to accept incoming connection: {e}")));
                 }
             }
         }
-        
-        Ok(())
     }
 
     async fn save_client(&mut self, client: Client, logstorage: &mut LogStorage) {
