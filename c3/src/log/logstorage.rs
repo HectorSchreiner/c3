@@ -36,12 +36,6 @@ impl C2Log {
     }
 }
 
-impl From<T> for C2Log {
-    pub fn from(value: String) -> Self {
-        
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum LogLevel {
     Info,

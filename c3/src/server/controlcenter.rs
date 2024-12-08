@@ -10,6 +10,7 @@ use crate::log::LogHandler;
 use super::{clients, Client, CommandEntry, C2Command};
 use crate::log::*;
 
+#[derive(Debug)]
 pub struct C2 {
     pub clients: Arc<RwLock<Vec<Client>>>,
     pub max_clients: usize,
@@ -25,24 +26,26 @@ impl C2 {
         }
     }
 
-    pub async fn start_listener(&self, loghandler: &mut LogHandler) -> tokio::io::Result<()> {
+    pub async fn start_listener(&self, logstorage: &mut LogStorage) -> tokio::io::Result<()> {
         let server_address = "127.0.0.1:1414";
         let listener = TcpListener::bind(server_address).await?;
-        C2Log::new(LogLevel::Info, format!("Created new TcpListener on address: {server_address}").to_owned());
+        logstorage.add_log(C2Log::new(LogLevel::Info, format!("Created new TcpListener on address: {server_address}")));
         
         loop {
             let (socket, client_address) = listener.accept().await?;
-
+            
         }
         Ok(())
     }
 
-    async fn save_client(&mut self, client: Client) {
-        let mut clients = self.clients.write().await;
+    async fn save_client(&mut self, client: Client, logstorage: &mut LogStorage) {
+        let mut clients = self.clients.write().await.push(client);
+        logstorage.add_log(C2Log::new(LogLevel::Info, format!("Saved Client to Storage!")));
     }
 
-    pub fn add_command_to_queue(&mut self, command_entry: CommandEntry) {
-        self.command_queue.push(command_entry);
+    pub fn add_command_to_queue(&mut self, command_entry: CommandEntry, logstorage: &mut LogStorage) {
+        self.command_queue.push(command_entry).clone();
+        logstorage.add_log(C2Log::new(LogLevel::Info, format!("Added command to command queue!")));
     }
 
     pub fn iter_queue(&mut self) {

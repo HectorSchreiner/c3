@@ -15,7 +15,7 @@ pub struct CommandEntry {
 
 impl CommandEntry {
     pub fn new(clients: Vec<Client>, command: C2Command, timestamp: Time, result: CommandResult) -> Self {
-
+        
         Self { clients, command, timestamp, result }
     }
 }
