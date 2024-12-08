@@ -38,6 +38,7 @@ impl C2 {
             match listener.accept().await {
                 Ok((socket, client_address)) => {
                     logstorage.add_log(C2Log::new(LogLevel::Info, format!("Accepted incoming connection from client address: {}", client_address)));
+                    self.save_client(Client::new( stream, hostname, client_address), logstorage)
                 }
                 Err(e) => {
                     logstorage.add_log(C2Log::new(LogLevel::Error, format!("Failed to accept incoming connection: {e}")));

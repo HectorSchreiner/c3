@@ -15,18 +15,19 @@ pub struct Client {
 
 impl Client {
     pub fn new(
-        id: Uuid,
         stream: TcpStream,
         hostname: String,
         ip_address: String,
     ) -> Self 
     {
-        let now = OffsetDateTime::now_utc();
-        let date = now.date();
-        let time = now.time();
-        let last_seen = PrimitiveDateTime::new(date, time);
+        let last_seen = PrimitiveDateTime::new(
+            OffsetDateTime::now_utc().date(), 
+            OffsetDateTime::now_utc().time()
+        );
+
         let status = ClientStatus::Connected;
-        Self { id, stream, hostname, ip_address, last_seen, status }
+        
+        Self { id: Uuid::new_v4(), stream, hostname, ip_address, last_seen, status }
     }
 }
 

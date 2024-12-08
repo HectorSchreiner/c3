@@ -8,4 +8,4 @@ crossterm = "0.28.1"
 serde = "1.0.215"
 time = { version = "0.3", features = ["formatting"] }
 tokio = { version = "1", features = ["full"] }
-uuid = "1.11.0"
+uuid = [ version = "1.11.0", features = ["v4"] ]
