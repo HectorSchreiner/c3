@@ -6,7 +6,11 @@ pub struct LogStorage {
 }
 
 impl LogStorage {
-    pub fn new(logs: Vec<C2Log>) -> Self {
+    pub fn new() -> Self {
+        Self { logs: vec![] }
+    }
+
+    pub fn init_with_vec(logs: Vec<C2Log>) -> Self {
         Self { logs }
     }
 
@@ -18,7 +22,7 @@ impl LogStorage {
 pub struct C2Log {
     pub timestamp: PrimitiveDateTime,
     pub level: LogLevel,
-    pub message: String
+    pub message: String,
 }
 
 impl C2Log {
@@ -41,6 +45,5 @@ pub enum LogLevel {
     Info,
     Warning,
     Error,
-    Critical
+    Critical,
 }
-
