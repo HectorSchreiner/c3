@@ -31,6 +31,7 @@ impl Interface {
 
             if let event::Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') {
+                    logstorage.add_log(C2Log::new(LogLevel::Warning, "Closed Window".to_owned()));
                     return Ok(());
                 }
             }
