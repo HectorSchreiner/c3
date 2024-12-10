@@ -1,12 +1,11 @@
-use tokio::net::TcpStream;
 use std::time::Instant;
 use time::{OffsetDateTime, PrimitiveDateTime};
+use tokio::net::TcpStream;
 use uuid::Uuid;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Client {
     pub id: Uuid,
-    pub stream: TcpStream,
     pub hostname: String,
     pub ip_address: String,
     pub last_seen: PrimitiveDateTime,
@@ -14,24 +13,25 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(
-        stream: TcpStream,
-        hostname: String,
-        ip_address: String,
-    ) -> Self 
-    {
+    pub fn new(hostname: String, ip_address: String) -> Self {
         let last_seen = PrimitiveDateTime::new(
-            OffsetDateTime::now_utc().date(), 
-            OffsetDateTime::now_utc().time()
+            OffsetDateTime::now_utc().date(),
+            OffsetDateTime::now_utc().time(),
         );
 
         let status = ClientStatus::Connected;
-        
-        Self { id: Uuid::new_v4(), stream, hostname, ip_address, last_seen, status }
+
+        Self {
+            id: Uuid::new_v4(),
+            hostname,
+            ip_address,
+            last_seen,
+            status,
+        }
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum ClientStatus {
     Connected,
     Disconnected,

