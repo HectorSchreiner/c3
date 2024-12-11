@@ -149,6 +149,7 @@ impl C2 {
     ) -> Result<(), std::io::Error> {
         if let Some(command) = self.command_queue.read().await.first() {
             Self::execute_command()
+            
         }
         Ok(())
     }
