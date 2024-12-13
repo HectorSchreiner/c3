@@ -29,18 +29,6 @@ impl CommandEntry {
             result,
         }
     }
-
-    pub fn run(&mut self) -> Result<(), std::io::Error> {
-        match self.command {
-            C2Command::ListClients => {
-                Ok(());
-            }
-            _ => {
-                Ok(());
-            }
-        }
-        Ok(())
-    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]

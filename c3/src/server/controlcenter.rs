@@ -137,19 +137,35 @@ impl C2 {
     }
 
     async fn execute_command(
-        command: CommandEntry,
-        hosts: Vec<Client>,
+        command_entry: &CommandEntry,
+        logstorage: &mut LogStorage,
+        interface: &mut Interface,
     ) -> Result<(), std::io::Error> {
+        let command = &command_entry.command;
+        let clients = &command_entry.clients;
+
+        clients.iter().for_each(|client| match &command {
+            C2Command::ListClients => {
+                logstorage.add_log(C2Log::new(
+                    LogLevel::Info,
+                    format!("Client {} is {:?}", client.hostname, client.status),
+                ));
+            }
+            _ => {
+                logstorage.add_log(C2Log::new(LogLevel::Error, format!("Command not found!")));
+            }
+        });
+
         Ok(())
     }
 
     async fn run_command_queue(
         &mut self,
         logstorage: &mut LogStorage,
+        interface: &mut Interface,
     ) -> Result<(), std::io::Error> {
         if let Some(command) = self.command_queue.read().await.first() {
-            Self::execute_command()
-            
+            Self::execute_command(command, logstorage, interface);
         }
         Ok(())
     }
