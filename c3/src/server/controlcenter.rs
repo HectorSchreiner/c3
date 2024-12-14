@@ -167,6 +167,7 @@ impl C2 {
         if let Some(command) = self.command_queue.read().await.first() {
             Self::execute_command(command, logstorage, interface);
         }
+        
         Ok(())
     }
 }
