@@ -151,7 +151,7 @@ impl C2 {
     }
 
     async fn send_command_to_client(&self, command_entry: &CommandEntry, logstorage: &mut LogStorage) -> Result<String, std::io::Error> {
-        
+        todo!();
         let clients = &command_entry.clients;
         
         Ok("ok".to_string())
