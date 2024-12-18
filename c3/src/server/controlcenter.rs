@@ -150,17 +150,29 @@ impl C2 {
             .retain(|client| client.id != id);
     }
 
-    async fn send_command_to_client(&self, command_entry: &CommandEntry, logstorage: &mut LogStorage) -> Result<String, std::io::Error> {
-        todo!();
-        let clients = &command_entry.clients;
+    async fn send_command_entry(&self, command_data: String, clients: Vec<Client>, logstorage: &mut LogStorage) -> Result<String, std::io::Error> {
+        let clients = &clients;
         
-        Ok("ok".to_string())
+        let command_data = match command_data {
+            Ok(data) => data,
+            Err(error) => {
+                command_entry.result = CommandResult::Failed(format!("Serialization error: {}", error));
+                logstorage.add_log(C2Log::new(
+                    LogLevel::Error,
+                    format!("Failed to serialize command: {}", error),
+                ));
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "Serialization failed",
+                ));
+            }
+        }
+        Ok(())
     }
 
     async fn execute_command(
         command_entry: &CommandEntry,
         logstorage: &mut LogStorage,
-        interface: &mut Interface,
     ) -> Result<(), std::io::Error> {
         let command = &command_entry.command;
         let clients = &command_entry.clients;
@@ -186,7 +198,7 @@ impl C2 {
         interface: &mut Interface,
     ) -> Result<(), std::io::Error> {
         if let Some(command) = self.command_queue.read().await.first() {
-            Self::execute_command(command, logstorage, interface).await?;
+            Self::execute_command(command, logstorage).await?;
             Self::remove_command_from_queue(&self, command.id).await;
         }
         Ok(())
