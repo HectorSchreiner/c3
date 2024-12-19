@@ -4,4 +4,4 @@ This is my command and control server written in rust. It can be installed with 
 git clone https://github.com/hectorschreiner/c3
 ```
 
-You also need the programming language rust installed on your machine...
+You also need the programming language rust installed on your machine.
